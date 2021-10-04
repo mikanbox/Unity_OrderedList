@@ -8,26 +8,43 @@ public class SortObjects : MonoBehaviour
 {
     public List<Transform> objlist = new List<Transform>(4);
 
-    bool isMoving = false;
+    public bool isMoving = false;
 
-    public float time = 0f;
+    Transform a;
+    Vector3 a_destPos;
+    Transform b;
+    Vector3 b_destPos;
+
     
 
     //外部で決めた値を元にソート
     // 4 -> 1 -> 2 -> 3 の順にソート
     public void SortBasedExternalValue() {
-        List<int> order = new List<int>(){3,2,1,0};
-        for(int i = 0; i < 4; i++ ) {
-            objlist[order[i]].SetSiblingIndex(i);
-        }
+        // List<int> order = new List<int>(){3,2,1,0};
+        // for(int i = 0; i < 4; i++ ) {
+        //     objlist[order[i]].SetSiblingIndex(i);
+        // }
     }
 
+    // 移動中は座標を少しづつ変化させる
     void Update() {
-        if (time > 0) {
-            // 移動中は座標を少しづつ変化させる
-        } else {
-            isMoving = false;
-        }
+        if (isMoving) {
+            a.position = a.position + new Vector3( (a_destPos.x - a.position.x) /20f ,  (a_destPos.y - a.position.y)/20f,0 );
+            b.position = b.position + new Vector3( (b_destPos.x - b.position.x) /20f ,  (b_destPos.y - b.position.y)/20f,0 );
+
+            if ( (a.position.y - a_destPos.y)*(a.position.y - a_destPos.y)  < 0.1f  ) {
+                isMoving = false;
+                List<Transform> tmpobjlist =  new List<Transform>();
+        
+                for(int i = 0; i < objlist[0].parent.childCount; i++ ) {
+                    Transform obj = objlist[0].parent.GetChild(i);
+                    tmpobjlist.Add(obj);
+                }
+                for(int i = 0; i < tmpobjlist.Count ; i++ ) {
+                    tmpobjlist[i].GetComponent<UnityEngine.UI.Image>().color = Color.black;
+                }
+            }
+        }            
     }
 
 
@@ -44,11 +61,6 @@ public class SortObjects : MonoBehaviour
         }
 
 
-        // objpairlist.Sort((a, b) => a.Item2 - b.Item2 );
-        // a.Item2 - b.Item2 < 0 なら a がbより前になる。つまり昇順ソート
-        for(int i = 0; i < tmpobjlist.Count ; i++ ) {
-            tmpobjlist[i].GetComponent<UnityEngine.UI.Image>().color = Color.black;
-        }
 
         for(int i = 0; i < tmpobjlist.Count - 1; i++ ) {       
             int val_a = tmpobjlist[i].GetComponent<Value>().value;
@@ -61,8 +73,11 @@ public class SortObjects : MonoBehaviour
 
                 // 切り替え後処理
                 tmpobjlist[i + 1].SetSiblingIndex(i);
-                time = 1f;
                 isMoving = true;
+                a = tmpobjlist[i];
+                a_destPos = tmpobjlist[i + 1].position;
+                b = tmpobjlist[i + 1];
+                b_destPos = tmpobjlist[i].position;
                 break;
             }
         }
